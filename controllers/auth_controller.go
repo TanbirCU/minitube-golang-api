@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 
 	"minitube-api/config"
 	"minitube-api/models"
@@ -17,13 +18,54 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
+func bindRegisterRequest(c *gin.Context) (RegisterRequest, bool) {
+	contentType := c.GetHeader("Content-Type")
+	var req RegisterRequest
+
+	if strings.Contains(contentType, "application/json") {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			return req, false
+		}
+	} else {
+		// form-data or x-www-form-urlencoded
+		req.Name = c.PostForm("name")
+		req.Email = c.PostForm("email")
+		req.Password = c.PostForm("password")
+	}
+	return req, true
+}
+
 func Register(c *gin.Context) {
-
-	var request RegisterRequest
-
-	if err := c.ShouldBindJSON(&request); err != nil {
+	request, ok := bindRegisterRequest(c)
+	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Invalid request",
+			"message": "Invalid request body",
+		})
+		return
+	}
+
+	// Validation
+	request.Name = strings.TrimSpace(request.Name)
+	request.Email = strings.TrimSpace(strings.ToLower(request.Email))
+	request.Password = strings.TrimSpace(request.Password)
+
+	if request.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Name is required",
+		})
+		return
+	}
+
+	if request.Email == "" || !strings.Contains(request.Email, "@") {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Valid email is required",
+		})
+		return
+	}
+
+	if len(request.Password) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Password must be at least 6 characters",
 		})
 		return
 	}
@@ -65,7 +107,14 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	token, _ := utils.GenerateToken(user.ID)
+	token, err := utils.GenerateToken(user.ID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Token generation failed",
+		})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Registration successful",
@@ -84,12 +133,28 @@ type LoginRequest struct {
 }
 
 func Login(c *gin.Context) {
+	fmt.Println("LOGIN HIT")
 
 	var request LoginRequest
+	contentType := c.GetHeader("Content-Type")
 
-	if err := c.ShouldBindJSON(&request); err != nil {
+	if strings.Contains(contentType, "application/json") {
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "Invalid request body",
+			})
+			return
+		}
+	} else {
+		request.Email = c.PostForm("email")
+		request.Password = c.PostForm("password")
+	}
+
+	request.Email = strings.TrimSpace(strings.ToLower(request.Email))
+
+	if request.Email == "" || request.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Invalid request",
+			"message": "Email and password are required",
 		})
 		return
 	}
@@ -138,6 +203,7 @@ func Login(c *gin.Context) {
 		},
 	})
 }
+
 func Me(c *gin.Context) {
 
 	userID := c.MustGet("user_id").(uint)

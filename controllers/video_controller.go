@@ -138,9 +138,14 @@ func GetVideos(c *gin.Context) {
 		)
 	}
 
-	query.
+	if err := query.
 		Order("created_at DESC").
-		Find(&videos)
+		Find(&videos).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not fetch videos",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": videos,
@@ -245,7 +250,12 @@ func DeleteVideo(c *gin.Context) {
 
 	os.Remove(video.VideoPath)
 
-	config.DB.Delete(&video)
+	if err := config.DB.Delete(&video).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not delete video",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Video deleted successfully",

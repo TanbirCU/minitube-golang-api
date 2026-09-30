@@ -6,12 +6,12 @@ type Video struct {
 	UserID      uint      `json:"user_id"`
 	CategoryID  uint      `json:"category_id"`
 
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
+	Title       string    `gorm:"size:500" json:"title"`
+	Description string    `gorm:"size:5000" json:"description"`
 
-	Filename    string    `json:"filename"`
-	VideoPath   string    `json:"video_path"`
-	Thumbnail   string    `json:"thumbnail"`
+	Filename    string    `gorm:"size:255" json:"filename"`
+	VideoPath   string    `gorm:"size:500" json:"video_path"`
+	Thumbnail   string    `gorm:"size:500" json:"thumbnail"`
 
 	Views       uint64    `json:"views"`
 
