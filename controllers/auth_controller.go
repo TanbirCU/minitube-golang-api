@@ -225,3 +225,53 @@ func Me(c *gin.Context) {
 		},
 	})
 }
+
+type UpdateProfileRequest struct {
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+}
+
+func UpdateProfile(c *gin.Context) {
+	userID := c.MustGet("user_id").(uint)
+
+	var user models.User
+	if err := config.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "User not found",
+		})
+		return
+	}
+
+	var req UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Invalid request body",
+		})
+		return
+	}
+
+	trimmedName := strings.TrimSpace(req.Name)
+	if trimmedName != "" {
+		user.Name = trimmedName
+	}
+	if req.Avatar != "" {
+		user.Avatar = strings.TrimSpace(req.Avatar)
+	}
+
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not update profile",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Profile updated successfully",
+		"user": gin.H{
+			"id":     user.ID,
+			"name":   user.Name,
+			"email":  user.Email,
+			"avatar": user.Avatar,
+		},
+	})
+}

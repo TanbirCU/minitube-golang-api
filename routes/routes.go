@@ -22,6 +22,7 @@ func SetupRoutes(router *gin.Engine) {
 	auth.Use(middleware.AuthMiddleware())
 
 	auth.GET("/me", controllers.Me)
+	auth.PUT("/me", controllers.UpdateProfile)
 
 	// =========================
 	// CATEGORIES
