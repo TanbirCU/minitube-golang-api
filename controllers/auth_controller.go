@@ -133,8 +133,6 @@ type LoginRequest struct {
 }
 
 func Login(c *gin.Context) {
-	fmt.Println("LOGIN HIT")
-
 	var request LoginRequest
 	contentType := c.GetHeader("Content-Type")
 

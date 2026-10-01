@@ -19,7 +19,6 @@ func SetupRoutes(router *gin.Engine) {
 	api.POST("/login", controllers.Login)
 
 	auth := api.Group("")
-
 	auth.Use(middleware.AuthMiddleware())
 
 	auth.GET("/me", controllers.Me)
@@ -29,35 +28,33 @@ func SetupRoutes(router *gin.Engine) {
 	// =========================
 
 	api.GET("/categories", controllers.GetCategories)
-
-	auth.POST(
-		"/categories",
-		controllers.CreateCategory,
-	)
+	auth.POST("/categories", controllers.CreateCategory)
 
 	// =========================
 	// VIDEOS
 	// =========================
 
 	api.GET("/videos", controllers.GetVideos)
+	api.GET("/videos/:id", controllers.GetVideo)
+	api.GET("/videos/:id/stream", controllers.StreamVideo)
+	api.GET("/videos/stream/:id", controllers.StreamVideo)
 
-	api.GET(
-		"/videos/:id",
-		controllers.GetVideo,
-	)
+	auth.POST("/videos", controllers.UploadVideo)
+	auth.DELETE("/videos/:id", controllers.DeleteVideo)
 
-	api.GET(
-		"/videos/:id/stream",
-		controllers.StreamVideo,
-	)
+	// =========================
+	// COMMENTS
+	// =========================
 
-	auth.POST(
-		"/videos",
-		controllers.UploadVideo,
-	)
+	api.GET("/videos/:id/comments", controllers.GetVideoComments)
+	auth.POST("/videos/:id/comments", controllers.CreateComment)
+	api.POST("/comments/:id/like", controllers.LikeComment)
+	auth.DELETE("/comments/:id", controllers.DeleteComment)
 
-	auth.DELETE(
-		"/videos/:id",
-		controllers.DeleteVideo,
-	)
+	// =========================
+	// SUBSCRIPTIONS
+	// =========================
+
+	api.GET("/channels/:id/subscribe", controllers.GetSubscriptionStatus)
+	auth.POST("/channels/:id/subscribe", controllers.ToggleSubscribe)
 }

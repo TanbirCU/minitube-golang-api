@@ -21,6 +21,8 @@ func main() {
 		&models.User{},
 		&models.Category{},
 		&models.Video{},
+		&models.Comment{},
+		&models.Subscription{},
 	)
 
 	// Create upload directory
@@ -50,6 +52,9 @@ func main() {
 			"Authorization",
 		},
 	}))
+
+	// Static files serving for uploaded videos and images
+	router.Static("/uploads", "./uploads")
 
 	// Routes
 	routes.SetupRoutes(router)
