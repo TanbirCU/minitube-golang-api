@@ -138,8 +138,13 @@ func GetVideos(c *gin.Context) {
 		)
 	}
 
+	order := "created_at DESC"
+	if c.Query("sort") == "views" || c.Query("trending") == "true" {
+		order = "views DESC, created_at DESC"
+	}
+
 	if err := query.
-		Order("created_at DESC").
+		Order(order).
 		Find(&videos).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Could not fetch videos",

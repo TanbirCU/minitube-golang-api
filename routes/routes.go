@@ -57,4 +57,5 @@ func SetupRoutes(router *gin.Engine) {
 
 	api.GET("/channels/:id/subscribe", controllers.GetSubscriptionStatus)
 	auth.POST("/channels/:id/subscribe", controllers.ToggleSubscribe)
+	auth.GET("/subscriptions", controllers.GetMySubscriptions)
 }

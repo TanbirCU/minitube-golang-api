@@ -96,3 +96,22 @@ func GetSubscriptionStatus(c *gin.Context) {
 		"subscribers":   count,
 	})
 }
+
+func GetMySubscriptions(c *gin.Context) {
+	userID := c.MustGet("user_id").(uint)
+
+	var subscriptions []models.Subscription
+	if err := config.DB.
+		Preload("Channel").
+		Where("subscriber_id = ?", userID).
+		Find(&subscriptions).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to fetch subscriptions",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": subscriptions,
+	})
+}
